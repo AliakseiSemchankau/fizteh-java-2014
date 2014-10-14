@@ -5,17 +5,17 @@ import java.util.Vector;
 /**
  * Created by Aliaksei Semchankau on 13.10.2014.
  */
-public class getCommand implements InterfaceCommand {
+public class GetCommand implements InterfaceCommand {
 
     @Override
-    public void makeCommand(Vector<String> args, FileMap databaseInformation){
-        if (args.size() != 2){
+    public void makeCommand(Vector<String> args, FileMap databaseInformation) {
+        if (args.size() != 2) {
             throw new DatabaseException("incorrect number of arguments(get)");
         }
         String key = args.elementAt(1);
         String value = databaseInformation.dbMap.get(key);
 
-        if (value == null){
+        if (value == null) {
             System.out.println("not found");
         } else {
             System.out.println("found");

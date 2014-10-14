@@ -18,7 +18,7 @@ public class DatabaseWorker {
         listOfCommands = new LinkedList<Vector<String>>();
         commandHashMap = new HashMap<String, InterfaceCommand>();
         commandHashMap.put("put", new PutCommand());
-        commandHashMap.put("get", new getCommand());
+        commandHashMap.put("get", new GetCommand());
         commandHashMap.put("list", new ListCommand());
         commandHashMap.put("remove", new RemoveCommand());
         commandHashMap.put("exit", new ExitCommand());
