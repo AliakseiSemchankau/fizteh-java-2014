@@ -132,8 +132,9 @@ public class TableInfo {
 
         for (int i = 0; i < 16; ++i) {
             mapDirectoriesFiles.add(new Vector<Vector<Pair<String, String>>>());
-            for (int j = 0; j < 16; ++j)
+            for (int j = 0; j < 16; ++j) {
                 mapDirectoriesFiles.elementAt(i).add(new Vector<Pair<String, String>>());
+            }
         }
 
         if (!Files.exists(pathToTable)) {

@@ -1,4 +1,4 @@
-package ru.fizteh.fivt.students.AliakseiSemchankau.multifilehashmap;
+ package ru.fizteh.fivt.students.AliakseiSemchankau.multifilehashmap;
 
 import java.util.HashMap;
 import java.util.Vector;

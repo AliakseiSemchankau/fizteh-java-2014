@@ -1,4 +1,4 @@
-package ru.fizteh.fivt.students.AliakseiSemchankau.multifilehashmap;
+ package ru.fizteh.fivt.students.AliakseiSemchankau.multifilehashmap;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -83,8 +83,9 @@ public class GetDatabase {
             while (true) {
                 readCommands(null);
                 doCommands();
-                if (dbInfo.exitFlag)
+                if (dbInfo.exitFlag) {
                     break;
+                }
             }
         } else {
             readCommands(args);
@@ -181,3 +182,4 @@ public class GetDatabase {
     }
 
 }
+
