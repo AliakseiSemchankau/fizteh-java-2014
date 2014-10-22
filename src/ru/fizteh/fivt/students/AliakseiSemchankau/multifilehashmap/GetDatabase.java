@@ -5,7 +5,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.*;
 
 /**
@@ -31,6 +30,13 @@ public class GetDatabase {
         pathDatabase = Paths.get(System.getProperty("user.dir")).resolve(System.getProperty("fizteh.db.dir"));
         dbInfo = new DatabaseFullInformation(pathDatabase);
 
+        if (!Files.exists(pathDatabase)) {
+            try {
+                Files.createDirectory(pathDatabase);
+            } catch (IOException ioexc) {
+                throw new DatabaseException("can't create " + pathDatabase.toString());
+            }
+        }
 
         if (!Files.isDirectory(pathDatabase)) {
             throw new DatabaseException(pathDatabase + " isn't a direction");
@@ -46,7 +52,7 @@ public class GetDatabase {
 
         referenceToTableInfo = new HashMap<String, TableInfo>();
 
-        for (Path innerTable: listOfDirs) {
+        for (Path innerTable : listOfDirs) {
 
             if (!Files.isDirectory(innerTable)) {
                 throw new DatabaseException(innerTable + ": isn't a directiion");
@@ -85,9 +91,9 @@ public class GetDatabase {
             doCommands();
         }
 
-    for (Map.Entry<String, TableInfo> entry : referenceToTableInfo.entrySet()){
-        entry.getValue().writeTable();
-    }
+        for (Map.Entry<String, TableInfo> entry : referenceToTableInfo.entrySet()) {
+            entry.getValue().writeTable();
+        }
 
     }
 
@@ -158,18 +164,17 @@ public class GetDatabase {
 
     public void doCommands() {
 
-        while (!listOfCommands.isEmpty()){
+        while (!listOfCommands.isEmpty()) {
             Vector<String> args = listOfCommands.poll();
-            if (tableCommandsHashMap.get(args.elementAt(0)) != null){
+            if (tableCommandsHashMap.get(args.elementAt(0)) != null) {
                 tableCommandsHashMap.get(args.elementAt(0)).makeCommand(args, referenceToTableInfo, dbInfo);
-            } else
-                if (commandsHashMap.get(args.elementAt(0)) != null) {
-                    if (dbInfo.currentTable == null) {
-                        System.out.println("choose a table at first");
-                    } else {
-                        commandsHashMap.get(args.elementAt(0)).makeCommand(args, referenceToTableInfo, dbInfo);
-                   }
+            } else if (commandsHashMap.get(args.elementAt(0)) != null) {
+                if (referenceToTableInfo.get(dbInfo.currentTableName) == null && !args.elementAt(0).equals("exit")) {
+                    System.out.println("choose a table at first");
                 } else {
+                    commandsHashMap.get(args.elementAt(0)).makeCommand(args, referenceToTableInfo, dbInfo);
+                }
+            } else {
                 System.out.println("there is no such command");
             }
         }
