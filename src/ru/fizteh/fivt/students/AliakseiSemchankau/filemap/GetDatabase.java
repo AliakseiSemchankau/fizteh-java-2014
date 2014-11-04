@@ -1,5 +1,6 @@
 package ru.fizteh.fivt.students.AliakseiSemchankau.filemap;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -30,7 +31,12 @@ public class GetDatabase {
         interactive = args.length == 0;
 
         if (!Files.exists(pathDatabase)) {
-            throw new DatabaseException("file is incorrect");
+            try {
+                Files.createFile(pathDatabase);
+            } catch (IOException ioexc) {
+                throw new DatabaseException(pathDatabase + " cannot create such database");
+            }
+
         }
 
         DatabaseWorker databaseProcess = new DatabaseWorker(pathDatabase);
