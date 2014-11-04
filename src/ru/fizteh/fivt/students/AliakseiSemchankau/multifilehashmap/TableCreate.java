@@ -10,7 +10,8 @@ import java.util.Vector;
  */
 public class TableCreate implements TableInterface {
     @Override
-    public void makeCommand(Vector<String> args, HashMap<String, TableInfo> referenceToTableInfo, DatabaseFullInformation dbInfo) {
+    public void makeCommand(Vector<String> args, HashMap<String, TableInfo> referenceToTableInfo,
+                            DatabaseFullInformation dbInfo) {
         if (args.size() != 2) {
             throw new DatabaseException("wrong number of args for create");
         }

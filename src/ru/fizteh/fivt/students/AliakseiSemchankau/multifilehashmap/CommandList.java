@@ -10,7 +10,8 @@ import java.util.Vector;
 public class CommandList implements CommandInterface {
 
     @Override
-    public void makeCommand(Vector<String> args, HashMap<String, TableInfo> referenceToTableInfo, DatabaseFullInformation dbInfo) {
+    public void makeCommand(Vector<String> args, HashMap<String, TableInfo>
+            referenceToTableInfo, DatabaseFullInformation dbInfo) {
 
         if (args.size() != 1) {
             throw new DatabaseException("too many arguments for list");

@@ -5,6 +5,7 @@ import java.util.Vector;
 
 public interface CommandInterface {
 
-    void makeCommand(Vector<String> args, HashMap<String, TableInfo> referenceToTableInfo, DatabaseFullInformation dbInfo);
+    void makeCommand(Vector<String> args, HashMap<String, TableInfo> referenceToTableInfo,
+                     DatabaseFullInformation dbInfo);
 
 }
