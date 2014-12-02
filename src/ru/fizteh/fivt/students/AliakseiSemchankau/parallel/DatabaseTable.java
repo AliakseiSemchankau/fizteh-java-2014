@@ -17,23 +17,23 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class DatabaseTable implements Table {
 
     Path pathToTable;
-    HashMap<String, Storeable> dbMap;
-    HashMap<String, Storeable> localDBMap;
+    HashMap<String, Storeable> realDBMap;
+   // HashMap<String, Storeable> localDBMap;
     int unsavedChanges;
     private ArrayList<Class<?>> signature = new ArrayList<Class<?>>();
     SerializeFunctions serializer = new SerializeFunctions();
     Path fatherDirectory;
     String tableName;
     ReentrantReadWriteLock lock;
-    //ThreadLocal<DatabaseTableDiff>
+    ThreadLocal<DatabaseTableDiff> diff;
     int version = 0;
 
     DatabaseTable(Path pathTable, Path directory) {
         pathToTable = pathTable;
         pathToTable.normalize();
 
-        dbMap = new HashMap<String, Storeable>();
-        localDBMap = new HashMap<String, Storeable>();
+        realDBMap = new HashMap<String, Storeable>();
+        //localDBMap = new HashMap<String, Storeable>();
         unsavedChanges = 0;
         fatherDirectory = directory;
     }
@@ -43,8 +43,8 @@ public class DatabaseTable implements Table {
         pathToTable = pathTable;
         pathToTable.normalize();
 
-        dbMap = new HashMap<String, Storeable>();
-        localDBMap = new HashMap<String, Storeable>();
+        realDBMap = new HashMap<String, Storeable>();
+        //localDBMap = new HashMap<String, Storeable>();
         unsavedChanges = 0;
         signature = arrayListColumnTypes;
         fatherDirectory = directory;
@@ -90,7 +90,7 @@ public class DatabaseTable implements Table {
             throw new DatabaseException("can't close list of directories of " + pathToTable.toString());
         }*/
 
-        localDBMap = new HashMap<String, Storeable>(dbMap);
+        //localDBMap = new HashMap<String, Storeable>(dbMap);
 
     }
 
@@ -154,7 +154,7 @@ public class DatabaseTable implements Table {
                 // System.out.println(Value);
                 try {
                     DatabaseStoreable curStore = serializer.deserialize(signature, new String(value, "UTF-8"));
-                    dbMap.put(new String(key, "UTF-8"), curStore);
+                    realDBMap.put(new String(key, "UTF-8"), curStore);
                 } catch (ParseException pexc) {
                     throw new DatabaseException("can't deserialize " + value.toString());
                 }
@@ -263,7 +263,7 @@ public class DatabaseTable implements Table {
 
             makeSignature();
 
-            for (Map.Entry<String, Storeable> entry : dbMap.entrySet()) {
+            for (Map.Entry<String, Storeable> entry : realDBMap.entrySet()) {
                 int hash = entry.getKey().hashCode();
                 int nDirectory = ((hash % 16) + 16) % 16;
                 int nFile = (((hash / 16) % 16) + 16) % 16;
@@ -413,13 +413,7 @@ public class DatabaseTable implements Table {
         if (key == null) {
             throw new IllegalArgumentException("key cannot be a null for get");
         }
-
-        if (localDBMap.containsKey(key)) {
-            return localDBMap.get(key);
-        }
-
-        return null;
-
+        return diff.get().get(key);
     }
 
     @Override
@@ -427,19 +421,7 @@ public class DatabaseTable implements Table {
         if (key == null || value == null) {
             throw new IllegalArgumentException("arguments for put can't be nullpointers");
         }
-
-        ++unsavedChanges;
-
-        if (localDBMap.containsKey(key)) {
-            // System.out.println("contained" + key);
-            Storeable oldValue = localDBMap.get(key);
-            localDBMap.put(key, value);
-            // System.out.println("oldValue " + oldValue);
-            return oldValue;
-        }
-
-        localDBMap.put(key, value);
-        return null;
+       return diff.get().put(key, value);
     }
 
     @Override
@@ -447,43 +429,45 @@ public class DatabaseTable implements Table {
         if (key == null) {
             throw new IllegalArgumentException("key cannot be a null for a remove");
         }
-
-        ++unsavedChanges;
-
-        if (localDBMap.containsKey(key)) {
-            Storeable value = localDBMap.get(key);
-            localDBMap.remove(key);
-            return value;
-        }
-
-        return null;
+        return diff.get().remove(key);
     }
 
     @Override
     public int size() {
-        return (localDBMap.size());
+        return (realDBMap.size() + diff.get().toPut.size() - diff.get().toRemove.size());
+    }
+
+    @Override
+    public List<String> list() {
+        List<String> listOfKeys = new LinkedList<String>();
+        for (String currentKey : realDBMap.keySet()) {
+            listOfKeys.add(currentKey);
+        }
+        return listOfKeys;
     }
 
     @Override
     public int commit() {
-        dbMap = new HashMap<String, Storeable>(localDBMap);
-        writeTable();
-        int changesToReturn = unsavedChanges;
-        unsavedChanges = 0;
-        return changesToReturn;
+        int committed = diff.get().changes();
+        diff.get().commit();
+        return committed;
     }
 
     @Override
     public int rollback() {
-        localDBMap = new HashMap<String, Storeable>(dbMap);
-        int changesToReturn = unsavedChanges;
-        unsavedChanges = 0;
-        return changesToReturn;
+        int uncommitted = diff.get().changes();
+        diff.get().rollback();
+        return uncommitted;
     }
 
     @Override
     public int getColumnsCount() {
         return signature.size();
+    }
+
+    @Override
+    public int getNumberOfUncommittedChanges() {
+        return diff.get().changes();
     }
 
     @Override
@@ -499,13 +483,16 @@ public class DatabaseTable implements Table {
         return version;
     }
 
-    /*@Override
-    public List<String> list() {
-        List<String> listOfKeys = new LinkedList<String>();
-        for (String currentKey : localDBMap.keySet()) {
-            listOfKeys.add(currentKey);
-        }
-        return listOfKeys;
-    }*/
+    public Storeable realPut(String key, Storeable store) {
+        return realDBMap.put(key, store);
+    }
+
+    public Storeable realGet(String key) {
+        return realDBMap.get(key);
+    }
+
+    public Storeable realRemove(String key) {
+        return realDBMap.get(key);
+    }
 
 }

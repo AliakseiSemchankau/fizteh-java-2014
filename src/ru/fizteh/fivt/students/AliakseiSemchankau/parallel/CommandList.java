@@ -1,10 +1,6 @@
 package ru.fizteh.fivt.students.AliakseiSemchankau.parallel;
 
 
-import ru.fizteh.fivt.storage.structured.Storeable;
-import ru.fizteh.fivt.storage.structured.Table;
-
-import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -31,10 +27,11 @@ public class CommandList implements CommandInterface {
             return;
         }
 
-        List<String> listOfKeys = new LinkedList<>();
+        List<String> listOfKeys = dTable.list();
 
-        for (String currentKey : dTable.localDBMap.keySet()) {
-            listOfKeys.add(currentKey);
+        if (listOfKeys == null) {
+            System.out.println("");
+            return;
         }
 
         if (listOfKeys.size() == 0) {
