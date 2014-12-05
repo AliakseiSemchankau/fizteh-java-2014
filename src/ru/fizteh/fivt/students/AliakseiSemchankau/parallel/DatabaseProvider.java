@@ -2,7 +2,6 @@ package ru.fizteh.fivt.students.AliakseiSemchankau.parallel;
 
 import ru.fizteh.fivt.storage.structured.*;
 
-import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -184,7 +183,7 @@ public class DatabaseProvider implements TableProvider {
     public Storeable createFor(Table table, List<?> values) throws ColumnFormatException, IndexOutOfBoundsException {
         List<Object> objectValues = new ArrayList<>(values);
         if (objectValues.size() != table.getColumnsCount()) {
-            throw new IndexOutOfBoundsException("size of values isn't equal to size of signature of " + table.getName());
+            throw new IndexOutOfBoundsException("values.size isn't equal to signature.size of " + table.getName());
         }
         for (int i = 0; i < values.size(); ++i) {
             if (objectValues.get(i) == null) {
@@ -200,7 +199,7 @@ public class DatabaseProvider implements TableProvider {
     @Override
     public List<String> getTableNames() {
         List<String> tableNames = new LinkedList<>();
-        for(String curTable : referenceToTableInfo.keySet()) {
+        for (String curTable : referenceToTableInfo.keySet()) {
             tableNames.add(curTable);
         }
         return tableNames;
