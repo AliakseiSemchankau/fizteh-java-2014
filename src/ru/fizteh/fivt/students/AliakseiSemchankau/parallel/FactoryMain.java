@@ -33,6 +33,8 @@ public class FactoryMain {
 
         DatabaseProvider dProvider = factory.create(dir);
 
+
+
         if (args.length == 0) {
 
             interactiveMode(dProvider);
@@ -98,6 +100,8 @@ public class FactoryMain {
     }
 
     public  void doCommands(Queue<Vector<String>> listOfCommands, DatabaseProvider dProvider) {
+
+
 
         HashMap<String, TableInterface> tableCommandsHashMap = new HashMap<String, TableInterface>();
         HashMap<String, CommandInterface> commandsHashMap = new HashMap<String, CommandInterface>();

@@ -28,8 +28,6 @@ public class DatabaseTableDiff {
 
     public void update() {
         lock.readLock().lock();
-        lock.writeLock().lock();
-
         try {
             if (dTable.getVersion() > localVersion) {
                 localVersion = dTable.getVersion();
@@ -69,7 +67,6 @@ public class DatabaseTableDiff {
 
         } finally {
             lock.readLock().unlock();
-            lock.writeLock().unlock();
         }
     }
 
@@ -90,8 +87,7 @@ public class DatabaseTableDiff {
             toPut.put(key, store);
             return null;
         }
-        lock.readLock().lock();
-        lock.writeLock().lock();
+        lock.readLock().tryLock();
         try {
             Storeable previous = dTable.realGet(key);
             if (previous == null) {
@@ -102,7 +98,6 @@ public class DatabaseTableDiff {
             return previous;
         } finally {
             lock.readLock().unlock();
-            lock.writeLock().unlock();
         }
     }
 
@@ -118,12 +113,10 @@ public class DatabaseTableDiff {
             return null;
         }
         lock.readLock().lock();
-        lock.writeLock().lock();
         try {
             return dTable.realGet(key);
         } finally {
-            lock.readLock().unlock();
-            lock.writeLock().unlock();
+        lock.readLock().unlock();
         }
     }
 
@@ -143,7 +136,6 @@ public class DatabaseTableDiff {
             return null;
         }
         lock.readLock().lock();
-        lock.writeLock().lock();
         try {
             Storeable previous = dTable.realGet(key);
             if (previous != null) {
@@ -152,7 +144,6 @@ public class DatabaseTableDiff {
             return previous;
         } finally {
             lock.readLock().unlock();
-            lock.writeLock().unlock();
         }
     }
 
@@ -163,7 +154,6 @@ public class DatabaseTableDiff {
 
     public void commit() {
         update();
-        lock.readLock().lock();
         lock.writeLock().lock();
         try {
             localVersion++;
@@ -180,7 +170,6 @@ public class DatabaseTableDiff {
             dTable.writeTable();
 
         } finally {
-            lock.readLock().unlock();
             lock.writeLock().unlock();
         }
         toPut.clear();

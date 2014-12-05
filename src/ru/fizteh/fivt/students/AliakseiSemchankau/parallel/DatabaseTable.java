@@ -36,6 +36,20 @@ public class DatabaseTable implements Table {
         //localDBMap = new HashMap<String, Storeable>();
         unsavedChanges = 0;
         fatherDirectory = directory;
+        lock = new ReentrantReadWriteLock();
+        lock.readLock().lock();
+
+        try {
+            diff = new ThreadLocal<DatabaseTableDiff>() {
+                @Override
+                protected DatabaseTableDiff initialValue() {
+                    return new DatabaseTableDiff(DatabaseTable.this, lock);
+                }
+            };
+        } finally {
+            lock.readLock().unlock();
+
+        }
     }
 
     DatabaseTable(Path pathTable, Path directory, List<Class<?>> columnTypes) {
@@ -48,6 +62,20 @@ public class DatabaseTable implements Table {
         unsavedChanges = 0;
         signature = arrayListColumnTypes;
         fatherDirectory = directory;
+
+        lock = new ReentrantReadWriteLock();
+        lock.readLock().lock();
+
+        try {
+            diff = new ThreadLocal<DatabaseTableDiff>() {
+                @Override
+                protected DatabaseTableDiff initialValue() {
+                    return new DatabaseTableDiff(DatabaseTable.this, lock);
+                }
+            };
+        } finally {
+            lock.readLock().unlock();
+        }
 
     }
 
@@ -414,6 +442,7 @@ public class DatabaseTable implements Table {
             throw new IllegalArgumentException("key cannot be a null for get");
         }
         return diff.get().get(key);
+
     }
 
     @Override
@@ -434,7 +463,11 @@ public class DatabaseTable implements Table {
 
     @Override
     public int size() {
-        return (realDBMap.size() + diff.get().toPut.size() - diff.get().toRemove.size());
+        int dbsize = realDBMap.size();
+        int toPutSize = diff.get().toPut.size();
+        int toRemoveSize = diff.get().toRemove.size();
+        return dbsize + toPutSize - toRemoveSize;
+        //return (realDBMap.size() + diff.get().toPut.size() - diff.get().toRemove.size());
     }
 
     @Override
@@ -442,6 +475,12 @@ public class DatabaseTable implements Table {
         List<String> listOfKeys = new LinkedList<String>();
         for (String currentKey : realDBMap.keySet()) {
             listOfKeys.add(currentKey);
+        }
+        for (String keyToPut : diff.get().toPut.keySet()) {
+            listOfKeys.add(keyToPut);
+        }
+        for (String keyToRemove : diff.get().toRemove.keySet()) {
+            listOfKeys.remove(keyToRemove);
         }
         return listOfKeys;
     }

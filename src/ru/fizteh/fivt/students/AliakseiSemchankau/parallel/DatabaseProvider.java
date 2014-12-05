@@ -9,9 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -24,7 +22,6 @@ public class DatabaseProvider implements TableProvider {
     public Path currentTable;
     public String currentTableName;
     SerializeFunctions serializer = new SerializeFunctions();
-    HashMap<String, ReentrantReadWriteLock> tableLocks = new HashMap<>();
     ReentrantReadWriteLock providerLock = new ReentrantReadWriteLock(true);
 
     public DatabaseProvider(String dir) {
@@ -63,8 +60,6 @@ public class DatabaseProvider implements TableProvider {
             String tableName = Difference.difference(pathDatabase.toString(), innerTable.toString());
             referenceToTableInfo.put(tableName, new DatabaseTable(innerTable, pathDatabase));
             referenceToTableInfo.get(tableName).tableName = tableName;
-            referenceToTableInfo.get(tableName).lock = new ReentrantReadWriteLock();
-            tableLocks.put(tableName, referenceToTableInfo.get(tableName).lock);
             referenceToTableInfo.get(tableName).openTable();
 
         }
@@ -110,7 +105,6 @@ public class DatabaseProvider implements TableProvider {
                 Path pathToTable = Paths.get(pathDatabase.toString()).resolve(name);
                 referenceToTableInfo.put(name, new DatabaseTable(pathToTable, pathDatabase, columnTypes));
                 referenceToTableInfo.get(name).tableName = name;
-                referenceToTableInfo.get(name).lock = new ReentrantReadWriteLock();
             } catch (IllegalArgumentException iaexc) {
                 throw new IllegalArgumentException(name + " is impossible name for creating a table");
             }
@@ -130,7 +124,6 @@ public class DatabaseProvider implements TableProvider {
             throw new IllegalArgumentException("name of removing table can't be a null");
         }
 
-        providerLock.readLock().lock();
         providerLock.writeLock().lock();
 
         try {
@@ -151,7 +144,6 @@ public class DatabaseProvider implements TableProvider {
             }
             referenceToTableInfo.remove(name);
         } finally {
-            providerLock.readLock().unlock();
             providerLock.writeLock().unlock();
         }
     }
@@ -203,6 +195,15 @@ public class DatabaseProvider implements TableProvider {
             }
         }
         return new DatabaseStoreable(objectValues);
+    }
+
+    @Override
+    public List<String> getTableNames() {
+        List<String> tableNames = new LinkedList<>();
+        for(String curTable : referenceToTableInfo.keySet()) {
+            tableNames.add(curTable);
+        }
+        return tableNames;
     }
 
 }
