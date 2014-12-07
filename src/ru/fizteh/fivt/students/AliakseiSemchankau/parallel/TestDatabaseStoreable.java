@@ -3,6 +3,7 @@ package ru.fizteh.fivt.students.AliakseiSemchankau.parallel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import ru.fizteh.fivt.storage.structured.Table;
 
 
@@ -19,10 +20,16 @@ public class TestDatabaseStoreable {
     SerializeFunctions serializer;
     MakeRandom randomizer;
     List<Class<?>> signature;
-
+    DatabaseFactory dFactory;
+    TemporaryFolder tmp;
+    String tmpName;
     @Before
     public void init() {
-        dProvider = new DatabaseProvider("C:\\JavaTests\\DatabaseForTests");
+        // dProvider = new DatabaseProvider("C:\\JavaTests\\DatabaseForTests");
+        tmp = new TemporaryFolder();
+        tmpName = tmp.toString();
+        dFactory = new DatabaseFactory();
+        dProvider = dFactory.create(tmpName);
         signature = new LinkedList<>();
         signature.add(Integer.class);
         signature.add(String.class);
@@ -42,7 +49,6 @@ public class TestDatabaseStoreable {
 
     @Test
     public void testGets() {
-        System.out.println("start!");
         List<Object> toPut = randomizer.takeRandomValue(signature);
         DatabaseStoreable store = new DatabaseStoreable(toPut);
 
@@ -63,7 +69,6 @@ public class TestDatabaseStoreable {
         } catch (IndexOutOfBoundsException ioobexc) {
             assertTrue(true);
         }
-        System.out.println("finish!");
     }
 
     @After
